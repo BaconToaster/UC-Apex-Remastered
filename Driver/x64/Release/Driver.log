@@ -1,0 +1,10 @@
+﻿  Building 'Driver' with toolset 'WindowsKernelModeDriver10.0' and the 'Universal' target platform.
+  Stamping x64\Release\Driver.inf
+  Stamping [Version] section with DriverVer=06/22/2021,8.14.31.183
+  func-hook.c
+  globals.c
+  main.c
+  Util.c
+  Generating Code...
+  Driver.vcxproj -> C:\Users\Leo\source\repos\UC-Apex-Remastered\x64\Release\Driver.sys
+  Driver is 'Universal'.
