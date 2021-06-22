@@ -33,24 +33,25 @@ struct globalVars
 	ImVec4 textColorInvisible = { 1.f, 0.f, 0.f, 1.f };
 	ImVec4 headCircleColorVisible = { 0.f, 1.f, .1f, 1.f };
 	ImVec4 headCircleColorInvisible = { 1.f, .1f, 0.f, 1.f };
+	ImVec4 headLineColor = { 1.f, 0.f, 0.f, 1.f };
 
 	float rainbowSpeed = 0.005f;
 
-	bool rcs = false; // recoil control system toggle
+	bool rcs = true; // recoil control system toggle
 	bool aimbot = false; // aimbot toggle
-	bool aimbotVisibleCheck = false; // aimbot visibility check toggle
+	bool aimbotVisibleCheck = true; // aimbot visibility check toggle
 	bool esp = true; // esp toggle
 	bool menuActive = true; // menu toggle
-	bool drawAimbotFOV = false;
-	bool headCircle = false;
-	bool rainbowFOV = false;
+	bool drawAimbotFOV = true;
+	bool rainbowFOV = true;
+	bool fillBox = false;
 	bool espColorVisibleRainbow = false;
 	bool espColorInvisibleRainbow = false;
 	bool textColorVisibleRainbow = false;
 	bool textColorInvisibleRainbow = false;
 	bool headCircleColorVisibleRainbow = false;
 	bool headCircleColorInvisibleRainbow = false;
-	bool fillBox = false;
+	bool headLineRainbow = false;
 
 	float rcsIntensity = 100.f; // recoil control system intensity in %
 	float aimRcsIntensity = 100.f; // aimbot recoil control intensity in %
@@ -60,7 +61,10 @@ struct globalVars
 	float maxTextDistance = 300.f;
 	float maxHealthDistance = 150.f;
 	float maxHeadCircleDistance = 150.f;
+	float maxHeadLineDistance = 150.f;
+	float maxKskDistance = 30.f;
 	int espThickness = 2;
+	int headLineThickness = 2;
 };
 
 extern KDriver Driver;

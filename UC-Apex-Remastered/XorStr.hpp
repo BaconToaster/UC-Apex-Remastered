@@ -1,250 +1,159 @@
-/*
- * Copyright 2017 - 2021 Justas Masiulis
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+#pragma once
 
-#ifndef JM_XORSTR_HPP
-#define JM_XORSTR_HPP
-
-#if defined(_M_ARM64) || defined(__aarch64__) || defined(_M_ARM) || defined(__arm__)
-#include <arm_neon.h>
-#elif defined(_M_X64) || defined(__amd64__) || defined(_M_IX86) || defined(__i386__)
-#include <immintrin.h>
-#else
-#error Unsupported platform
-#endif
-
-#include <cstdint>
-#include <cstddef>
+#include <string>
 #include <utility>
-#include <type_traits>
 
-#define xorstr(str) ::jm::xor_string([]() { return str; }, std::integral_constant<std::size_t, sizeof(str) / sizeof(*str)>{}, std::make_index_sequence<::jm::detail::_buffer_size<sizeof(str)>()>{})
-#define xorstr_(str) xorstr(str).crypt_get()
+#define xorstr_(str) XorStr(str).c_str()
+
+namespace
+{
+	constexpr int const_atoi(char c)
+	{
+		return c - '0';
+	}
+}
 
 #ifdef _MSC_VER
-#define XORSTR_FORCEINLINE __forceinline
+#define ALWAYS_INLINE __forceinline
 #else
-#define XORSTR_FORCEINLINE __attribute__((always_inline)) inline
+#define ALWAYS_INLINE __attribute__((always_inline))
 #endif
 
-#if defined(__clang__) || defined(__GNUC__)
-#define JM_XORSTR_LOAD_FROM_REG(x) ::jm::detail::load_from_reg(x)
-#else
-#define JM_XORSTR_LOAD_FROM_REG(x) (x)
-#endif
+template<typename _string_type, size_t _length>
+class _Basic_XorStr
+{
+	using value_type = typename _string_type::value_type;
+	static constexpr auto _length_minus_one = _length - 1;
 
-namespace jm {
+public:
+	constexpr ALWAYS_INLINE _Basic_XorStr(value_type const (&str)[_length])
+		: _Basic_XorStr(str, std::make_index_sequence<_length_minus_one>())
+	{
 
-    namespace detail {
+	}
 
-        template<std::size_t Size>
-        XORSTR_FORCEINLINE constexpr std::size_t _buffer_size()
-        {
-            return ((Size / 16) + (Size % 16 != 0)) * 2;
-        }
+	inline auto c_str() const
+	{
+		decrypt();
 
-        template<std::uint32_t Seed>
-        XORSTR_FORCEINLINE constexpr std::uint32_t key4() noexcept
-        {
-            std::uint32_t value = Seed;
-            for (char c : __TIME__)
-                value = static_cast<std::uint32_t>((value ^ c) * 16777619ull);
-            return value;
-        }
+		return data;
+	}
 
-        template<std::size_t S>
-        XORSTR_FORCEINLINE constexpr std::uint64_t key8()
-        {
-            constexpr auto first_part = key4<2166136261 + S>();
-            constexpr auto second_part = key4<first_part>();
-            return (static_cast<std::uint64_t>(first_part) << 32) | second_part;
-        }
+	inline auto str() const
+	{
+		decrypt();
 
-        // loads up to 8 characters of string into uint64 and xors it with the key
-        template<std::size_t N, class CharT>
-        XORSTR_FORCEINLINE constexpr std::uint64_t
-            load_xored_str8(std::uint64_t key, std::size_t idx, const CharT* str) noexcept
-        {
-            using cast_type = typename std::make_unsigned<CharT>::type;
-            constexpr auto value_size = sizeof(CharT);
-            constexpr auto idx_offset = 8 / value_size;
+		return _string_type(data, data + _length_minus_one);
+	}
 
-            std::uint64_t value = key;
-            for (std::size_t i = 0; i < idx_offset && i + idx * idx_offset < N; ++i)
-                value ^=
-                (std::uint64_t{ static_cast<cast_type>(str[i + idx * idx_offset]) }
-            << ((i % idx_offset) * 8 * value_size));
+	inline operator _string_type() const
+	{
+		return str();
+	}
 
-            return value;
-        }
+private:
+	template<size_t... indices>
+	constexpr ALWAYS_INLINE _Basic_XorStr(value_type const (&str)[_length], std::index_sequence<indices...>)
+		: data{ crypt(str[indices], indices)..., '\0' },
+		encrypted(true)
+	{
 
-        // forces compiler to use registers instead of stuffing constants in rdata
-        XORSTR_FORCEINLINE std::uint64_t load_from_reg(std::uint64_t value) noexcept
-        {
-#if defined(__clang__) || defined(__GNUC__)
-            asm("" : "=r"(value) : "0"(value) : );
-#endif
-            return value;
-        }
+	}
 
-        template<std::uint64_t V>
-        struct uint64_v {
-            constexpr static std::uint64_t value = V;
-        };
+	static constexpr auto XOR_KEY = static_cast<value_type>(
+		const_atoi(__TIME__[7]) +
+		const_atoi(__TIME__[6]) * 10 +
+		const_atoi(__TIME__[4]) * 60 +
+		const_atoi(__TIME__[3]) * 600 +
+		const_atoi(__TIME__[1]) * 3600 +
+		const_atoi(__TIME__[0]) * 36000
+		);
 
-    } // namespace detail
+	static ALWAYS_INLINE constexpr auto crypt(value_type c, size_t i)
+	{
+		return static_cast<value_type>(c ^ (XOR_KEY + i));
+	}
 
-    template<class CharT, std::size_t Size, class Keys, class Indices>
-    class xor_string;
+	inline void decrypt() const
+	{
+		if (encrypted)
+		{
+			for (size_t t = 0; t < _length_minus_one; t++)
+			{
+				data[t] = crypt(data[t], t);
+			}
+			encrypted = false;
+		}
+	}
 
-    template<class CharT, std::size_t Size, std::uint64_t... Keys, std::size_t... Indices>
-    class xor_string<CharT, Size, std::integer_sequence<std::uint64_t, Keys...>, std::index_sequence<Indices...>> {
-#ifndef JM_XORSTR_DISABLE_AVX_INTRINSICS
-        constexpr static inline std::uint64_t alignment = ((Size > 16) ? 32 : 16);
-#else
-        constexpr static inline std::uint64_t alignment = 16;
-#endif
+	mutable value_type data[_length];
+	mutable bool encrypted;
+};
+//---------------------------------------------------------------------------
+template<size_t _length>
+using XorStrA = _Basic_XorStr<std::string, _length>;
+template<size_t _length>
+using XorStrW = _Basic_XorStr<std::wstring, _length>;
+template<size_t _length>
+using XorStrU16 = _Basic_XorStr<std::u16string, _length>;
+template<size_t _length>
+using XorStrU32 = _Basic_XorStr<std::u32string, _length>;
+//---------------------------------------------------------------------------
+template<typename _string_type, size_t _length, size_t _length2>
+inline auto operator==(const _Basic_XorStr<_string_type, _length>& lhs, const _Basic_XorStr<_string_type, _length2>& rhs)
+{
+	static_assert(_length == _length2, "XorStr== different length");
 
-        alignas(alignment) std::uint64_t _storage[sizeof...(Keys)];
+	return _length == _length2 && lhs.str() == rhs.str();
+}
+//---------------------------------------------------------------------------
+template<typename _string_type, size_t _length>
+inline auto operator==(const _string_type& lhs, const _Basic_XorStr<_string_type, _length>& rhs)
+{
+	return lhs.size() == _length && lhs == rhs.str();
+}
+//---------------------------------------------------------------------------
+template<typename _stream_type, typename _string_type, size_t _length>
+inline auto& operator<<(_stream_type& lhs, const _Basic_XorStr<_string_type, _length>& rhs)
+{
+	lhs << rhs.c_str();
 
-    public:
-        using value_type = CharT;
-        using size_type = std::size_t;
-        using pointer = CharT*;
-        using const_pointer = const CharT*;
-
-        template<class L>
-        XORSTR_FORCEINLINE xor_string(L l, std::integral_constant<std::size_t, Size>, std::index_sequence<Indices...>) noexcept
-            : _storage{ JM_XORSTR_LOAD_FROM_REG(detail::uint64_v<detail::load_xored_str8<Size>(Keys, Indices, l())>::value)... }
-        {}
-
-        XORSTR_FORCEINLINE constexpr size_type size() const noexcept
-        {
-            return Size - 1;
-        }
-
-        XORSTR_FORCEINLINE void crypt() noexcept
-        {
-            // everything is inlined by hand because a certain compiler with a certain linker is _very_ slow
-#if defined(__clang__)
-            alignas(alignment)
-                std::uint64_t arr[]{ JM_XORSTR_LOAD_FROM_REG(Keys)... };
-            std::uint64_t* keys =
-                (std::uint64_t*)JM_XORSTR_LOAD_FROM_REG((std::uint64_t)arr);
-#else
-            alignas(alignment) std::uint64_t keys[]{ JM_XORSTR_LOAD_FROM_REG(Keys)... };
-#endif
-
-#if defined(_M_ARM64) || defined(__aarch64__) || defined(_M_ARM) || defined(__arm__)
-#if defined(__clang__)
-            ((Indices >= sizeof(_storage) / 16 ? static_cast<void>(0) : __builtin_neon_vst1q_v(
-                reinterpret_cast<uint64_t*>(_storage) + Indices * 2,
-                veorq_u64(__builtin_neon_vld1q_v(reinterpret_cast<const uint64_t*>(_storage) + Indices * 2, 51),
-                    __builtin_neon_vld1q_v(reinterpret_cast<const uint64_t*>(keys) + Indices * 2, 51)),
-                51)), ...);
-#else // GCC, MSVC
-            ((Indices >= sizeof(_storage) / 16 ? static_cast<void>(0) : vst1q_u64(
-                reinterpret_cast<uint64_t*>(_storage) + Indices * 2,
-                veorq_u64(vld1q_u64(reinterpret_cast<const uint64_t*>(_storage) + Indices * 2),
-                    vld1q_u64(reinterpret_cast<const uint64_t*>(keys) + Indices * 2)))), ...);
-#endif
-#elif !defined(JM_XORSTR_DISABLE_AVX_INTRINSICS)
-            ((Indices >= sizeof(_storage) / 32 ? static_cast<void>(0) : _mm256_store_si256(
-                reinterpret_cast<__m256i*>(_storage) + Indices,
-                _mm256_xor_si256(
-                    _mm256_load_si256(reinterpret_cast<const __m256i*>(_storage) + Indices),
-                    _mm256_load_si256(reinterpret_cast<const __m256i*>(keys) + Indices)))), ...);
-
-            if constexpr (sizeof(_storage) % 32 != 0)
-                _mm_store_si128(
-                    reinterpret_cast<__m128i*>(_storage + sizeof...(Keys) - 2),
-                    _mm_xor_si128(_mm_load_si128(reinterpret_cast<const __m128i*>(_storage + sizeof...(Keys) - 2)),
-                        _mm_load_si128(reinterpret_cast<const __m128i*>(keys + sizeof...(Keys) - 2))));
-#else
-            ((Indices >= sizeof(_storage) / 16 ? static_cast<void>(0) : _mm_store_si128(
-                reinterpret_cast<__m128i*>(_storage) + Indices,
-                _mm_xor_si128(_mm_load_si128(reinterpret_cast<const __m128i*>(_storage) + Indices),
-                    _mm_load_si128(reinterpret_cast<const __m128i*>(keys) + Indices)))), ...);
-#endif
-        }
-
-        XORSTR_FORCEINLINE const_pointer get() const noexcept
-        {
-            return reinterpret_cast<const_pointer>(_storage);
-        }
-
-        XORSTR_FORCEINLINE pointer get() noexcept
-        {
-            return reinterpret_cast<pointer>(_storage);
-        }
-
-        XORSTR_FORCEINLINE pointer crypt_get() noexcept
-        {
-            // crypt() is inlined by hand because a certain compiler with a certain linker is _very_ slow
-#if defined(__clang__)
-            alignas(alignment)
-                std::uint64_t arr[]{ JM_XORSTR_LOAD_FROM_REG(Keys)... };
-            std::uint64_t* keys =
-                (std::uint64_t*)JM_XORSTR_LOAD_FROM_REG((std::uint64_t)arr);
-#else
-            alignas(alignment) std::uint64_t keys[]{ JM_XORSTR_LOAD_FROM_REG(Keys)... };
-#endif
-
-#if defined(_M_ARM64) || defined(__aarch64__) || defined(_M_ARM) || defined(__arm__)
-#if defined(__clang__)
-            ((Indices >= sizeof(_storage) / 16 ? static_cast<void>(0) : __builtin_neon_vst1q_v(
-                reinterpret_cast<uint64_t*>(_storage) + Indices * 2,
-                veorq_u64(__builtin_neon_vld1q_v(reinterpret_cast<const uint64_t*>(_storage) + Indices * 2, 51),
-                    __builtin_neon_vld1q_v(reinterpret_cast<const uint64_t*>(keys) + Indices * 2, 51)),
-                51)), ...);
-#else // GCC, MSVC
-            ((Indices >= sizeof(_storage) / 16 ? static_cast<void>(0) : vst1q_u64(
-                reinterpret_cast<uint64_t*>(_storage) + Indices * 2,
-                veorq_u64(vld1q_u64(reinterpret_cast<const uint64_t*>(_storage) + Indices * 2),
-                    vld1q_u64(reinterpret_cast<const uint64_t*>(keys) + Indices * 2)))), ...);
-#endif
-#elif !defined(JM_XORSTR_DISABLE_AVX_INTRINSICS)
-            ((Indices >= sizeof(_storage) / 32 ? static_cast<void>(0) : _mm256_store_si256(
-                reinterpret_cast<__m256i*>(_storage) + Indices,
-                _mm256_xor_si256(
-                    _mm256_load_si256(reinterpret_cast<const __m256i*>(_storage) + Indices),
-                    _mm256_load_si256(reinterpret_cast<const __m256i*>(keys) + Indices)))), ...);
-
-            if constexpr (sizeof(_storage) % 32 != 0)
-                _mm_store_si128(
-                    reinterpret_cast<__m128i*>(_storage + sizeof...(Keys) - 2),
-                    _mm_xor_si128(_mm_load_si128(reinterpret_cast<const __m128i*>(_storage + sizeof...(Keys) - 2)),
-                        _mm_load_si128(reinterpret_cast<const __m128i*>(keys + sizeof...(Keys) - 2))));
-#else
-            ((Indices >= sizeof(_storage) / 16 ? static_cast<void>(0) : _mm_store_si128(
-                reinterpret_cast<__m128i*>(_storage) + Indices,
-                _mm_xor_si128(_mm_load_si128(reinterpret_cast<const __m128i*>(_storage) + Indices),
-                    _mm_load_si128(reinterpret_cast<const __m128i*>(keys) + Indices)))), ...);
-#endif
-
-            return (pointer)(_storage);
-        }
-    };
-
-    template<class L, std::size_t Size, std::size_t... Indices>
-    xor_string(L l, std::integral_constant<std::size_t, Size>, std::index_sequence<Indices...>)->xor_string<
-        std::remove_const_t<std::remove_reference_t<decltype(l()[0])>>,
-        Size,
-        std::integer_sequence<std::uint64_t, detail::key8<Indices>()...>,
-        std::index_sequence<Indices...>>;
-
-} // namespace jm
-
-#endif // include guard
+	return lhs;
+}
+//---------------------------------------------------------------------------
+template<typename _string_type, size_t _length, size_t _length2>
+inline auto operator+(const _Basic_XorStr<_string_type, _length>& lhs, const _Basic_XorStr<_string_type, _length2>& rhs)
+{
+	return lhs.str() + rhs.str();
+}
+//---------------------------------------------------------------------------
+template<typename _string_type, size_t _length>
+inline auto operator+(const _string_type& lhs, const _Basic_XorStr<_string_type, _length>& rhs)
+{
+	return lhs + rhs.str();
+}
+//---------------------------------------------------------------------------
+template<size_t _length>
+constexpr ALWAYS_INLINE auto XorStr(char const (&str)[_length])
+{
+	return XorStrA<_length>(str);
+}
+//---------------------------------------------------------------------------
+template<size_t _length>
+constexpr ALWAYS_INLINE auto XorStr(wchar_t const (&str)[_length])
+{
+	return XorStrW<_length>(str);
+}
+//---------------------------------------------------------------------------
+template<size_t _length>
+constexpr ALWAYS_INLINE auto XorStr(char16_t const (&str)[_length])
+{
+	return XorStrU16<_length>(str);
+}
+//---------------------------------------------------------------------------
+template<size_t _length>
+constexpr ALWAYS_INLINE auto XorStr(char32_t const (&str)[_length])
+{
+	return XorStrU32<_length>(str);
+}
+//---------------------------------------------------------------------------

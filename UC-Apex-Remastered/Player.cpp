@@ -78,7 +78,7 @@ bool Player::IsVisible(uintptr_t ent, int index)
 
 uintptr_t Player::GetBestTarget()
 {
-	if (Player::IsAlive(globals.localPlayer))
+	if (Player::IsPlayer(globals.localPlayer))
 	{
 		float oldDist = FLT_MAX;
 		float newDist = 0;

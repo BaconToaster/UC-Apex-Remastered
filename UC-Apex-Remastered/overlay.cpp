@@ -2,6 +2,7 @@
 #include <string>
 #include <filesystem>
 #include <thread>
+#include "imgui/ksk.h"
 #include "imgui/FontAwesome.h"
 #include "imgui/IconsFontAwesome.h"
 #include "imgui/Comfortaa-Regular.h"
@@ -21,6 +22,7 @@ MARGINS margin = { -1 };
 ImFont* titleFont;
 ImFont* bigFont;
 MSG message;
+IDirect3DTexture9* ksk;
 
 // winprochandler
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -150,6 +152,9 @@ bool overlay::DirectXInit()
 	D3DXCreateFont(p_Device, 50, 0, FW_NORMAL, 1, false, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Helvetica", &pFont); // Create the font used for text rendering
 	D3DXCreateFont(p_Device, 14, 0, FW_NORMAL, 1, false, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Helvetica", &pESPFont); // Create the font used for esp rendering
 
+	if (FAILED(D3DXCreateTextureFromFileInMemory(p_Device, kskPng, sizeof(kskPng), &ksk)))
+		return false;
+
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
 	ImGuiIO& io = ImGui::GetIO();
@@ -196,9 +201,7 @@ void DrawImGui()
 	// pass input to imgui
 	InputHandler();
 
-	ImGui_ImplDX9_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
+	// create an imgui frame
 	
 	// set the right window flags
 	if (globals.menuActive)
@@ -234,7 +237,6 @@ void DrawImGui()
 		ImGui::Spacing();
 
 		ImGui::Checkbox(xorstr_("ESP"), &globals.esp);
-		ImGui::Checkbox(xorstr_("Head Circle"), &globals.headCircle);
 		ImGui::ColorEdit4(xorstr_("Head Circle Color | Visible"), (float*)&globals.headCircleColorVisible, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_AlphaBar);
 		ImGui::Checkbox(xorstr_("Rainbow"), &globals.headCircleColorVisibleRainbow);
 		ImGui::ColorEdit4(xorstr_("Head Circle Color | Invisible"), (float*)&globals.headCircleColorInvisible, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_AlphaBar);
@@ -247,6 +249,9 @@ void DrawImGui()
 		ImGui::Checkbox(xorstr_("Fill Boxes"), &globals.fillBox);
 		ImGui::ColorEdit4(xorstr_("ESP Fill Color | Visible"), (float*)&globals.espFillColorVisible, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_AlphaBar);
 		ImGui::ColorEdit4(xorstr_("ESP Fill Color | Invisible"), (float*)&globals.espFillColorInvisible, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_AlphaBar);
+		ImGui::ColorEdit4(xorstr_("Head Line"), (float*)&globals.headLineColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_AlphaBar);
+		ImGui::Checkbox(xorstr_("Rainbow"), &globals.headLineRainbow);
+		ImGui::SliderInt(xorstr_("Head Line Thickness"), &globals.headLineThickness, 1, 5, "%dpx");
 		
 		ImGui::Spacing();
 
@@ -257,11 +262,12 @@ void DrawImGui()
 		ImGui::SliderFloat(xorstr_("Max Box Distance"), &globals.maxBoxDistance, 0.f, 1000.f, "%.1fm");
 		ImGui::SliderFloat(xorstr_("Max Text Distance"), &globals.maxTextDistance, 0.f, 1000.f, "%.1fm");
 		ImGui::SliderFloat(xorstr_("Max Head Circle Distance"), &globals.maxHeadCircleDistance, 0.f, 1000.f, "%.1fm");
+		ImGui::SliderFloat(xorstr_("Max Healthbars Circle Distance"), &globals.maxHealthDistance, 0.f, 1000.f, "%.1fm");
+		ImGui::SliderFloat(xorstr_("Max Head Line Distance"), &globals.maxHeadLineDistance, 0.f, 1000.f, "%.1fm");
+		ImGui::SliderFloat(xorstr_("KSK ESP Max Distance"), &globals.maxKskDistance, 0.f, 1000.f, "%.1fm");
 
 		ImGui::End();
 	}
-
-	ImGui::EndFrame();
 }
 
 auto Rainbow(float delay)
@@ -279,10 +285,24 @@ auto Rainbow(float delay)
 
 void overlay::Render()
 {
+	static ImDrawList* drawList;
+
 	while (!GetAsyncKeyState(VK_END))
 	{
-		// create an imgui frame
+		ImGui_ImplDX9_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
+
 		DrawImGui();
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+		ImGui::Begin(xorstr_("##scene"), nullptr, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoTitleBar);
+		ImGui::SetWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+		ImGui::SetWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y), ImGuiCond_Always);
+
+		drawList = ImGui::GetWindowDrawList();
 
 		p_Device->Clear(0, 0, D3DCLEAR_TARGET, 0, 1.f, 0);
 		p_Device->BeginScene();
@@ -290,7 +310,7 @@ void overlay::Render()
 		globals.currentRainbowColor = { std::get<0>(Rainbow(globals.rainbowSpeed)), std::get<1>(Rainbow(globals.rainbowSpeed)), std::get<2>(Rainbow(globals.rainbowSpeed)), 1.f };
 
 		// render here
-		if (globals.esp && Player::IsPlayer(globals.localPlayer))
+		if (Player::IsPlayer(globals.localPlayer))
 		{
 			// get view matrix every frame
 			globals.viewMatrix = Driver.rpm<viewMatrix_t>(Driver.rpm<uintptr_t>(globals.viewRenderer + OFFSET_MATRIX));
@@ -316,6 +336,10 @@ void overlay::Render()
 				vec2 targetBodyScreen;
 				if (!Util::WorldToScreen(targetBody, targetBodyScreen)) continue; // convert to screen coordinates
 				
+				vec3 targetNeck = Util::GetBonePos(player, 7); // get neck bone
+				vec2 targetNeckScreen;
+				if (!Util::WorldToScreen(targetNeck, targetNeckScreen)) continue; // convert to screen coordinates
+
 				if (globals.esp)
 				{
 					// calculate the stuff needed for the boxes
@@ -324,6 +348,7 @@ void overlay::Render()
 					float middle = targetBodyScreen.x - (width / 2.f);
 					float dist = Driver.rpm<vec3>(globals.localPlayer + OFFSET_ORIGIN).DistTo(targetHead);
 					float distM = Util::ToMeters(dist);
+					float neckHeadDistance = targetHeadScreen.Dist2D(targetNeckScreen);
 
 					if (distM <= globals.maxBoxDistance)
 					{
@@ -371,10 +396,6 @@ void overlay::Render()
 
 					if (distM <= globals.maxHeadCircleDistance)
 					{
-						vec3 targetNeck = Util::GetBonePos(player, 7); // get neck bone
-						vec2 targetNeckScreen;
-						if (!Util::WorldToScreen(targetNeck, targetNeckScreen)) continue; // convert to screen coordinates
-
 						D3DCOLOR circleColor;
 
 						// get the appropriate colors
@@ -384,8 +405,25 @@ void overlay::Render()
 							circleColor = globals.headCircleColorInvisibleRainbow ? ImGui::ColorConvertFloat4ToU32(globals.currentRainbowColor) : Util::Vec4toARGB(globals.headCircleColorInvisible);
 
 						// draw the head circle
-						DrawCircle(targetHeadScreen.x, targetHeadScreen.y, targetHeadScreen.Dist2D(targetNeckScreen), 1.f, 20.f, circleColor); /* we need the distance from head to neck
-																																			   so we can size it depending on distance*/
+						DrawCircle(targetHeadScreen.x, targetHeadScreen.y, neckHeadDistance, 1.f, 20.f, circleColor); /* we need the distance from head to neck
+																																				so we can size it depending on distance*/
+					}
+
+					/*if (distM <= globals.maxHeadLineDistance)
+					{
+						// get the color
+						D3DCOLOR lineColor = globals.headLineRainbow ? ImGui::ColorConvertFloat4ToU32(globals.currentRainbowColor) : Util::Vec4toARGB(globals.headLineColor);
+
+						vec3 targetAngles = Driver.rpm<vec3>(player + OFFSET_VIEWANGLES); // get enemy angles
+						vec3 targetPos = targetHead.TransformVec(targetAngles, 30.f); // eye position + 30 in direction of the eyes
+						vec2 targetPosScreen;
+						if (Util::WorldToScreen(targetPos, targetPosScreen))
+							DrawLine(targetHeadScreen.x, targetHeadScreen.y, targetPosScreen.x, targetPosScreen.y, globals.headLineThickness, lineColor);
+					}*/
+
+					if (distM <= globals.maxKskDistance)
+					{
+						drawList->AddImage(ksk, ImVec2(targetHeadScreen.x - neckHeadDistance, targetHeadScreen.y - neckHeadDistance), ImVec2(targetHeadScreen.x + neckHeadDistance, targetHeadScreen.y + neckHeadDistance));
 					}
 				}
 			}
@@ -398,6 +436,12 @@ void overlay::Render()
 			DrawCircle(globals.windowWH.x / 2, globals.windowWH.y / 2, globals.aimbotFOV, 1.f, 50.f, globals.rainbowFOV ? ImGui::ColorConvertFloat4ToU32(globals.currentRainbowColor) : Util::Vec4toARGB(globals.fovCircleColor));
 		}
 
+		drawList->PushClipRectFullScreen();
+		ImGui::End();
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar(2);
+
+		ImGui::EndFrame();
 		ImGui::Render();
 		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 

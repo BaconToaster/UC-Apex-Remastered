@@ -34,8 +34,7 @@ uintptr_t Util::GetPid(const wchar_t* processName)
 
 	procEntry32.dwSize = sizeof(PROCESSENTRY32);
 
-	HANDLE hProcSnap{ 0 };
-	hProcSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	HANDLE hProcSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
 	if (!hProcSnap || hProcSnap == INVALID_HANDLE_VALUE)
 		return 0;

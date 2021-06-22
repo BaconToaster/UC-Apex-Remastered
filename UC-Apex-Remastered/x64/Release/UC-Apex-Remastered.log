@@ -85,12 +85,12 @@ C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\Driver.h(77,20):
 C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\defs.h(57,20): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\defs.h(58,20): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\defs.h(59,20): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\overlay.cpp(366,84): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\overlay.cpp(366,57): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\overlay.cpp(369,69): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\overlay.cpp(369,42): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\overlay.cpp(387,54): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\overlay.cpp(387,34): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\overlay.cpp(391,84): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\overlay.cpp(391,57): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\overlay.cpp(394,69): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\overlay.cpp(394,42): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\overlay.cpp(408,54): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\overlay.cpp(408,34): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
   Player.cpp
 C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\Driver.h(49,20): warning C4244: '=': conversion from 'uintptr_t' to 'ULONG', possible loss of data
 C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\Driver.h(76,23): warning C4244: '=': conversion from 'uintptr_t' to 'ULONG', possible loss of data
@@ -107,14 +107,14 @@ C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\Driver.h(77,20):
 C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\defs.h(57,20): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\defs.h(58,20): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\defs.h(59,20): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\Util.cpp(89,10): warning C4244: 'initializing': conversion from 'LONG' to 'float', possible loss of data
 C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\Util.cpp(90,10): warning C4244: 'initializing': conversion from 'LONG' to 'float', possible loss of data
-C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\Util.cpp(91,10): warning C4244: 'initializing': conversion from 'LONG' to 'float', possible loss of data
-C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\Util.cpp(93,48): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\Util.cpp(94,48): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\Util.cpp(107,37): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\Util.cpp(108,40): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\Util.cpp(92,48): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\Util.cpp(93,48): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\Util.cpp(106,37): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Leo\source\repos\UC-Apex-Remastered\UC-Apex-Remastered\Util.cpp(107,40): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   Generating code
   Previous IPDB not found, fall back to full compilation.
-  All 2869 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  All 2965 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Finished generating code
   UC-Apex-Remastered.vcxproj -> C:\Users\Leo\source\repos\UC-Apex-Remastered\x64\Release\UC-Apex-Remastered.exe
