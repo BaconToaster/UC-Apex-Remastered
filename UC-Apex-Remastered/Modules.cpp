@@ -61,7 +61,7 @@ void Modules::Aimbot()
 	if (!globals.aimbot || !Player::IsPlayer(globals.localPlayer)) return;
 
 	globals.currentAimTarget = Player::GetBestTarget(); // find closest enemy to crosshair
-	if (GetAsyncKeyState(VK_RBUTTON)) // aimbot key
+	if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) // aimbot key
 	{
 		if (globals.currentAimTarget != NULL)
 		{
@@ -84,6 +84,7 @@ void Modules::Aimbot()
 				newAngles -= breathAngle * (globals.aimRcsIntensity / 100.f);
 				newAngles -= (punchAngle * 0.05f) * (globals.aimRcsIntensity / 100.f);
 				newAngles += oldAngle * (globals.aimRcsIntensity / 100.f);
+				oldPunch = punchAngle; // do this so the rcs doesnt jump down after unlocking from the enemy
 
 				newAngles.Normalize(); // clamp angles
 

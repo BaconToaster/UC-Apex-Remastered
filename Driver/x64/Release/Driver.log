@@ -1,6 +1,6 @@
 ﻿  Building 'Driver' with toolset 'WindowsKernelModeDriver10.0' and the 'Universal' target platform.
   Stamping x64\Release\Driver.inf
-  Stamping [Version] section with DriverVer=06/22/2021,20.6.29.324
+  Stamping [Version] section with DriverVer=06/23/2021,16.56.5.960
   func-hook.c
   globals.c
   main.c

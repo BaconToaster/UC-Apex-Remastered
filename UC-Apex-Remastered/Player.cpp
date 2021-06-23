@@ -8,6 +8,23 @@ struct visibleTime
 	uintptr_t lastCheck[100]; // last visibility check time
 } lastVis;
 
+int pics[100];
+
+std::vector<uintptr_t> Player::GetPlayers()
+{
+	std::vector<uintptr_t> vec;
+	for (uintptr_t i = 0; i <= 100; i++)
+	{
+		uintptr_t entity = Driver.rpm<uintptr_t>(globals.entityList + (i << 5));
+		if (entity == globals.localPlayer || entity == 0) continue;
+
+		// Player check
+		if (Player::IsPlayer(entity))
+			vec.push_back(entity);
+	}
+	return vec;
+}
+
 bool Player::IsPlayer(uintptr_t player)
 {
 	return (Driver.rpm<uintptr_t>(player + OFFSET_NAME) == 125780153691248);
@@ -34,9 +51,9 @@ bool Player::IsValidEnemy(uintptr_t player)
 	int health = Driver.rpm<int>(player + OFFSET_HEALTH);
 	int teamID = Driver.rpm<int>(player + OFFSET_TEAM);
 
-	if (!Player::IsAlive(player)) return false;
 	if (health < 0 || health > 100 || teamID < 0 || teamID > 32) return false;
 	if (teamID == Driver.rpm<int>(globals.localPlayer + OFFSET_TEAM)) return false;
+	if (!Player::IsAlive(player)) return false;
 
 	return true;
 }
@@ -85,12 +102,8 @@ uintptr_t Player::GetBestTarget()
 		uintptr_t aimTarget = NULL;
 
 		int index = 0;
-		for (uintptr_t i = 0; i <= 100; i++)
+		for (uintptr_t& player : Player::GetPlayers())
 		{
-			uintptr_t player = Driver.rpm<uintptr_t>(globals.entityList + (i << 5));
-			if (player == NULL || player == globals.localPlayer) continue;
-			if (!Player::IsPlayer(player)) continue;
-
 			bool visible = Player::IsVisible(player, index);
 			index++;
 
@@ -104,10 +117,9 @@ uintptr_t Player::GetBestTarget()
 			if (!Util::WorldToScreen(targetHead, targetHeadScreen)) continue;
 			newDist = abs(screenMiddle.Dist2D(targetHeadScreen));
 
-			if (newDist < oldDist && newDist <= globals.aimbotFOV && localHead.DistTo(targetHead) <= globals.maxAimbotDistance * 39.62)
+			if (newDist < oldDist && newDist <= globals.aimbotFOV && Util::ToMeters(localHead.DistTo(targetHead)) <= globals.maxAimbotDistance)
 			{
-				if (globals.aimbotVisibleCheck && !visible)
-					continue;
+				if (globals.aimbotVisibleCheck && !visible) continue;
 
 				oldDist = newDist;
 				aimTarget = player;
@@ -126,4 +138,15 @@ std::string Player::GetName(uintptr_t player)
 	char buf[64] = { 0 };
 	Driver.ReadRaw(globals.pID, nameOffset, (UINT_PTR)&buf, 64);
 	return buf;
+}
+
+int Player::GetPic(int index) // for the ksk esp, its not getting the profile picture
+{
+	if (pics[index] == 0)
+	{
+		srand(Util::GetMs() * 69);
+		pics[index] = ((rand() % 2) + 1); // generate a random number between 1 and 2
+	}
+
+	return pics[index];
 }

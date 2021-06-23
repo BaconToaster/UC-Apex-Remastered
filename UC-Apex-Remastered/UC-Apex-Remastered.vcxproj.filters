@@ -138,6 +138,9 @@
     <ClInclude Include="imgui\ksk.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="imgui\unknownController.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

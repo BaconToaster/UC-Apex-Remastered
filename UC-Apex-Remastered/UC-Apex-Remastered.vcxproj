@@ -162,6 +162,7 @@
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="imgui\ksk.h" />
+    <ClInclude Include="imgui\unknownController.h" />
     <ClInclude Include="Modules.h" />
     <ClInclude Include="offsets.h" />
     <ClInclude Include="overlay.h" />

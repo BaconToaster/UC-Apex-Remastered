@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <thread>
 #include "imgui/ksk.h"
+#include "imgui/unknownController.h"
 #include "imgui/FontAwesome.h"
 #include "imgui/IconsFontAwesome.h"
 #include "imgui/Comfortaa-Regular.h"
@@ -23,6 +24,8 @@ ImFont* titleFont;
 ImFont* bigFont;
 MSG message;
 IDirect3DTexture9* ksk;
+IDirect3DTexture9* unknownCtrl;
+float oldDelay = 0;
 
 // winprochandler
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -155,6 +158,9 @@ bool overlay::DirectXInit()
 	if (FAILED(D3DXCreateTextureFromFileInMemory(p_Device, kskPng, sizeof(kskPng), &ksk)))
 		return false;
 
+	if (FAILED(D3DXCreateTextureFromFileInMemory(p_Device, unknownController, sizeof(unknownController), &unknownCtrl)))
+		return false;
+
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
 	ImGuiIO& io = ImGui::GetIO();
@@ -272,12 +278,17 @@ void DrawImGui()
 
 auto Rainbow(float delay)
 {
-	static uint32_t cnt = NULL;
+	static uint32_t cnt = 0;
 	float freq = delay;
 
-	if (cnt++ >= (uint32_t)-1)
+	if (++cnt >= (uint32_t)-1)
 	{
-		cnt = NULL;
+		cnt = 0;
+	}
+	if (delay != oldDelay)
+	{
+		cnt = 0;
+		oldDelay = delay;
 	}
 
 	return std::make_tuple(std::sin(freq * cnt + 0) * 2.f, std::sin(freq * cnt + 2) * 2.3f, std::sin(freq * cnt + 4) * 2.6f);
@@ -317,12 +328,9 @@ void overlay::Render()
 
 			int index = 0; // we need the index for the visibility check
 			// loop through the entity list
-			for (uintptr_t i = 0; i <= 100; i++)
+			for (uintptr_t& player : Player::GetPlayers())
 			{
-				uintptr_t player = Driver.rpm<uintptr_t>(globals.entityList + (i << 5));
-				if (player == NULL || player == globals.localPlayer) continue;
-				if (!Player::IsPlayer(player)) continue;
-
+				int pic = Player::GetPic(index);
 				bool visible = Player::IsVisible(player, index);
 				index++;
 
@@ -423,7 +431,19 @@ void overlay::Render()
 
 					if (distM <= globals.maxKskDistance)
 					{
-						drawList->AddImage(ksk, ImVec2(targetHeadScreen.x - neckHeadDistance, targetHeadScreen.y - neckHeadDistance), ImVec2(targetHeadScreen.x + neckHeadDistance, targetHeadScreen.y + neckHeadDistance));
+						switch (pic)
+						{
+						case 1:
+							drawList->AddImage(ksk, ImVec2(targetHeadScreen.x - neckHeadDistance, targetHeadScreen.y - neckHeadDistance), ImVec2(targetHeadScreen.x + neckHeadDistance, targetHeadScreen.y + neckHeadDistance));
+							break;
+
+						case 2:
+							drawList->AddImage(unknownCtrl, ImVec2(targetHeadScreen.x - neckHeadDistance, targetHeadScreen.y - neckHeadDistance), ImVec2(targetHeadScreen.x + neckHeadDistance, targetHeadScreen.y + neckHeadDistance));
+							break;
+
+						default:
+							break;
+						}
 					}
 				}
 			}
@@ -435,6 +455,11 @@ void overlay::Render()
 			// draw fov circle
 			DrawCircle(globals.windowWH.x / 2, globals.windowWH.y / 2, globals.aimbotFOV, 1.f, 50.f, globals.rainbowFOV ? ImGui::ColorConvertFloat4ToU32(globals.currentRainbowColor) : Util::Vec4toARGB(globals.fovCircleColor));
 		}
+
+		DrawString((std::string(xorstr_("Aimbot:\t")) + (globals.aimbot ? xorstr_("ON") : xorstr_("OFF"))).c_str(), 5, 5, globals.aimbot ? ARGB(255, 0, 255, 0) : ARGB(255, 255, 0, 0), pESPFont);
+		DrawString((std::string(xorstr_("RCS:\t")) + (globals.rcs ? xorstr_("ON") : xorstr_("OFF"))).c_str(), 5, 19, globals.rcs ? ARGB(255, 0, 255, 0) : ARGB(255, 255, 0, 0), pESPFont);
+		DrawString((std::string(xorstr_("ESP:\t")) + (globals.esp ? xorstr_("ON") : xorstr_("OFF"))).c_str(), 5, 33, globals.esp ? ARGB(255, 0, 255, 0) : ARGB(255, 255, 0, 0), pESPFont);
+		//DrawString((std::string(xorstr_("Target:\t")) + ((globals.currentAimTarget != NULL) ? xorstr_("YES") : xorstr_("NO"))).c_str(), 5, 47, ARGB(255, 0, 255, 0), pESPFont);
 
 		drawList->PushClipRectFullScreen();
 		ImGui::End();
