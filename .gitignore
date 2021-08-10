@@ -17,3 +17,7 @@
 *.exe
 *.out
 *.app
+.vs
+x64
+Driver/x64/*
+UC-Apex-Remastered/x64/*
