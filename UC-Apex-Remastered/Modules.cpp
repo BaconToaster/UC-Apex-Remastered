@@ -60,7 +60,7 @@ void Modules::Aimbot()
 	// check if localplayer is valid and aimbot is on
 	if (!globals.aimbot || !Player::IsPlayer(globals.localPlayer)) return;
 
-	globals.currentAimTarget = Player::GetBestTarget(); // find closest enemy to crosshair
+	globals.currentAimTarget = Player::GetBestTarget(); // find closest enemy to crosshair 找到最近的敌人
 	if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) // aimbot key
 	{
 		if (globals.currentAimTarget != NULL)
@@ -68,27 +68,33 @@ void Modules::Aimbot()
 			if (Player::IsAlive(globals.currentAimTarget))
 			{
 				// get positions and predict the enemy position
+				// 获取位置并预测敌人位置
 				vec3 localHead = Driver.rpm<vec3>(globals.localPlayer + OFFSET_CAMERAPOS);
-				vec3 targetHead = Util::GetBonePos(globals.currentAimTarget, 8);
+				vec3 targetHead = Util::GetBonePos(globals.currentAimTarget, 5);//8是头，5是胸。8 is head,5 is chest
 				Player::PredictPos(globals.currentAimTarget, &targetHead);
 
 				// get all the angles
+				// 得到所有的角度
 				vec3 oldAngle = Driver.rpm<vec3>(globals.localPlayer + OFFSET_VIEWANGLES);
 				vec3 punchAngle = Driver.rpm<vec3>(globals.localPlayer + OFFSET_AIMPUNCH);
 				vec3 breathAngle = Driver.rpm<vec3>(globals.localPlayer + OFFSET_BREATH_ANGLES);
 
 				// calculate the new angles
+				// 计算新的角度
 				vec3 newAngles = Util::CalcAngle(localHead, targetHead);
 
 				// subtracting punchangles and breath angles
+				// 减去出拳角度和呼吸角度
+				//每次修正角度时乘一个百分值用来调整自瞄程度
 				newAngles -= breathAngle * (globals.aimRcsIntensity / 100.f);
 				newAngles -= (punchAngle * 0.05f) * (globals.aimRcsIntensity / 100.f);
 				newAngles += oldAngle * (globals.aimRcsIntensity / 100.f);
-				oldPunch = punchAngle; // do this so the rcs doesnt jump down after unlocking from the enemy
+				oldPunch = punchAngle; // do this so the rcs doesnt jump down after unlocking from the enemy 这样做是为了让 rcs 在从敌人身上解锁后不会跳下来
 
-				newAngles.Normalize(); // clamp angles
+				newAngles.Normalize(); // clamp angles 夹角
 
 				Driver.wpm<vec2>(globals.localPlayer + OFFSET_VIEWANGLES, { newAngles.x, newAngles.y }); // overwrite old angles
+				Sleep(30);//使每次自瞄位置有间隔，防止变成激光枪
 			}
 		}
 	}

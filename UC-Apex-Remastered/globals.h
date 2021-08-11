@@ -43,7 +43,7 @@ struct globalVars
 	bool esp = true; // esp toggle
 	bool menuActive = true; // menu toggle
 	bool drawAimbotFOV = true;
-	bool rainbowFOV = true;
+	bool rainbowFOV = false;
 	bool fillBox = false;
 	bool espColorVisibleRainbow = false;
 	bool espColorInvisibleRainbow = false;
@@ -53,10 +53,10 @@ struct globalVars
 	bool headCircleColorInvisibleRainbow = false;
 	bool headLineRainbow = false;
 
-	float rcsIntensity = 100.f; // recoil control system intensity in %
-	float aimRcsIntensity = 100.f; // aimbot recoil control intensity in %
+	float rcsIntensity = 40.f; // recoil control system intensity in %
+	float aimRcsIntensity = 5.f; // aimbot recoil control intensity in %
 	float maxAimbotDistance = 200.f; // maximum aimbot distance
-	float aimbotFOV = 200.f; // aimbot FOV
+	float aimbotFOV = 150.f; // aimbot FOV
 	float maxBoxDistance = 1000.f;
 	float maxTextDistance = 300.f;
 	float maxHealthDistance = 150.f;
