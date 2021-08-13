@@ -2,6 +2,7 @@
 
 vec3 oldPunch = { 0.f, 0.f, 0.f };
 int lastKey = 0;
+int targetBone[5] = {8,7,5,3,2};//rand boneId 随机选择瞄准位置
 
 void Modules::Run()
 {
@@ -70,7 +71,8 @@ void Modules::Aimbot()
 				// get positions and predict the enemy position
 				// 获取位置并预测敌人位置
 				vec3 localHead = Driver.rpm<vec3>(globals.localPlayer + OFFSET_CAMERAPOS);
-				vec3 targetHead = Util::GetBonePos(globals.currentAimTarget, 5);//8是头，5是胸。8 is head,5 is chest
+				srand((unsigned)time(NULL));//rand boneId 随机选择瞄准位置
+				vec3 targetHead = Util::GetBonePos(globals.currentAimTarget, targetBone[rand()%5]);//8是头，5是胸。8 is head,5 is chest 
 				Player::PredictPos(globals.currentAimTarget, &targetHead);
 
 				// get all the angles
