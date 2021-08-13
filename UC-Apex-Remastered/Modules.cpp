@@ -94,7 +94,7 @@ void Modules::Aimbot()
 				newAngles.Normalize(); // clamp angles 夹角
 
 				Driver.wpm<vec2>(globals.localPlayer + OFFSET_VIEWANGLES, { newAngles.x, newAngles.y }); // overwrite old angles
-				Sleep(30);//使每次自瞄位置有间隔，防止变成激光枪
+				Sleep(20);//使每次自瞄位置有间隔，防止变成激光枪
 			}
 		}
 	}
