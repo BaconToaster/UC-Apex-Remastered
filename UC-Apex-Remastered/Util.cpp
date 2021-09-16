@@ -1,5 +1,6 @@
-#include "Util.h"
+﻿#include "Util.h"
 #include <random>
+#include <ctime> 
 
 std::string Util::RandomString(const int len)
 {
@@ -127,3 +128,24 @@ float Util::ToMeters(float x)
 {
 	return x / 39.62f;
 }
+
+void Util::Delay(int time)//time*1000为秒数 
+{
+	clock_t now = clock();
+
+	while (clock() - now < time);
+}
+
+//void Util::BindKey(int vKey, bool globalKey)
+//{
+//	while (GetAsyncKeyState(vKey))
+//	{
+//		lastKey = vKey;
+//	}
+//
+//	if (lastKey == vKey)
+//	{
+//		lastKey = 0;
+//		globalKey = !globalKey;
+//	}
+//}

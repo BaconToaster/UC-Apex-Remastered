@@ -182,8 +182,10 @@
     <ClInclude Include="printa\fmt\ranges.h" />
     <ClInclude Include="printa\macros.hpp" />
     <ClInclude Include="printa\printa.hpp" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="singleton.hpp" />
     <ClInclude Include="Util.h" />
+    <ClInclude Include="View.h" />
     <ClInclude Include="XorStr.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -203,6 +205,10 @@
     <ClCompile Include="printa\fmt\format.cc" />
     <ClCompile Include="printa\fmt\os.cc" />
     <ClCompile Include="Util.cpp" />
+    <ClCompile Include="View.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="UC-Apex-Remastered.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -68,8 +68,7 @@ void Player::PredictPos(uintptr_t target, vec3* bonePos)
 		float bulletSpeed = Driver.rpm<float>(currentWeapon + OFFSET_BULLET_SPEED);
 		float bulletGravity = Driver.rpm<float>(currentWeapon + OFFSET_BULLET_GRAVITY);
 
-		if (bulletSpeed > 1.f)
-		{
+
 			vec3 muzzle = Driver.rpm<vec3>(globals.localPlayer + OFFSET_CAMERAPOS);//枪口
 			float time = bonePos->DistTo(muzzle) / bulletSpeed;
 			bonePos->z += (700.f * bulletGravity * 0.5f) * (time * time);
@@ -77,9 +76,7 @@ void Player::PredictPos(uintptr_t target, vec3* bonePos)
 			bonePos->x += velDelta.x;
 			bonePos->y += velDelta.y;
 			bonePos->z += velDelta.z;
-			//bonePos->z += velDelta.z+100.f;//z轴+加法版
-			//bonePos->z += velDelta.z-100.f;//z轴-减法版
-		}
+		
 	}
 }
 

@@ -36,6 +36,7 @@ struct globalVars
 	ImVec4 headLineColor = { 1.f, 0.f, 0.f, 1.f };
 
 	float rainbowSpeed = 0.005f;
+	int delayTime = 100;
 
 	bool rcs = false; // recoil control system toggle
 	bool aimbot = true; // aimbot toggle
@@ -52,11 +53,14 @@ struct globalVars
 	bool headCircleColorVisibleRainbow = false;
 	bool headCircleColorInvisibleRainbow = false;
 	bool headLineRainbow = false;
+	bool forceAim = false;
+	bool smoothMode = true;
+	float smoothAimIntensity = 50.f; //平滑模式下自瞄强度
 
-	float rcsIntensity = 40.f; // recoil control system intensity in %
-	float aimRcsIntensity = 40.f; // aimbot recoil control intensity in %
-	float maxAimbotDistance = 200.f; // maximum aimbot distance
-	float aimbotFOV = 50.f; // aimbot FOV
+	float rcsIntensity = 50.f; // recoil control system intensity in %
+	float aimRcsIntensity = 50.f; // aimbot recoil control intensity in %
+	float maxAimbotDistance = 350.f; // maximum aimbot distance
+	float aimbotFOV = 110.f; // aimbot FOV
 	float maxBoxDistance = 1000.f;
 	float maxTextDistance = 300.f;
 	float maxHealthDistance = 150.f;

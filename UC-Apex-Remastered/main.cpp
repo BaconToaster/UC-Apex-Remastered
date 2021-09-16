@@ -90,7 +90,8 @@ int main(int argCount, char** argVector) /* the file name is the first element o
 	{
 		Modules::Run();
 
-		Sleep(1);
+		//Sleep(1);
+		Util::Delay(1);
 	}
 
 	overlay::DirectXShutdown();
