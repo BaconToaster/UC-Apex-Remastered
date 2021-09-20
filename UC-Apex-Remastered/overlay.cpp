@@ -8,6 +8,7 @@
 #include "imgui/IconsFontAwesome.h"
 #include "imgui/Comfortaa-Regular.h"
 #include "imgui/Comfortaa-Bold.h"
+#include "View.h"
 
 // set up these variables here in case we need them later
 HWND overlayWindow;
@@ -26,6 +27,7 @@ MSG message;
 IDirect3DTexture9* ksk;
 IDirect3DTexture9* unknownCtrl;
 float oldDelay = 0;
+View view;
 
 // winprochandler
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -165,6 +167,15 @@ bool overlay::DirectXInit()
 	ImGui::StyleColorsDark();
 	ImGuiIO& io = ImGui::GetIO();
 
+	auto fonts = io.Fonts;//中文
+	fonts->AddFontFromFileTTF(
+		//"c:/windows/fonts/simhei.ttf",
+		"fonts/simhei.ttf",
+		13.0f,
+		NULL,
+		fonts->GetGlyphRangesChineseFull()
+	);
+
 	// add default font and merge fontawesome icons
 	io.Fonts->AddFontFromMemoryTTF(comfortaaRegular, sizeof(comfortaaRegular), 13.f);
 
@@ -215,7 +226,13 @@ void DrawImGui()
 	else
 		SetWindowLongA(overlayWindow, GWL_EXSTYLE, (WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_TRANSPARENT));
 
-	if (globals.menuActive)
+	if (globals.menuActive)//主菜单
+	{
+		view.drawMenu();
+
+	}
+	/*原菜单originMenu
+	if (globals.menuActive)//主菜单
 	{
 		// imgui stuff
 
@@ -274,9 +291,10 @@ void DrawImGui()
 
 		ImGui::End();
 	}
+	*/
 }
 
-auto Rainbow(float delay)
+/*auto Rainbow(float delay)
 {
 	static uint32_t cnt = 0;
 	float freq = delay;
@@ -292,9 +310,10 @@ auto Rainbow(float delay)
 	}
 
 	return std::make_tuple(std::sin(freq * cnt + 0) * 2.f, std::sin(freq * cnt + 2) * 2.3f, std::sin(freq * cnt + 4) * 2.6f);
-}
+}//原作者可能是个gay
+*/
 
-void overlay::Render()
+void overlay::Render()//透视
 {
 	static ImDrawList* drawList;
 
@@ -318,7 +337,7 @@ void overlay::Render()
 		p_Device->Clear(0, 0, D3DCLEAR_TARGET, 0, 1.f, 0);
 		p_Device->BeginScene();
 
-		globals.currentRainbowColor = { std::get<0>(Rainbow(globals.rainbowSpeed)), std::get<1>(Rainbow(globals.rainbowSpeed)), std::get<2>(Rainbow(globals.rainbowSpeed)), 1.f };
+		//globals.currentRainbowColor = { std::get<0>(Rainbow(globals.rainbowSpeed)), std::get<1>(Rainbow(globals.rainbowSpeed)), std::get<2>(Rainbow(globals.rainbowSpeed)), 1.f };
 
 		// render here
 		if (Player::IsPlayer(globals.localPlayer))
@@ -376,13 +395,13 @@ void overlay::Render()
 						}
 
 						// call the function to draw the box
-						Modules::DrawBoxESP(middle, targetHeadScreen.y, width, height, globals.espThickness, espFillColor, espColor);
+						view.DrawBoxESP(middle, targetHeadScreen.y, width, height, globals.espThickness, espFillColor, espColor);
 					}
 
 					if (distM <= globals.maxHealthDistance)
 					{
 						// call the function to draw the healthbars
-						Modules::DrawHealthbars(middle, targetHeadScreen.y, width, height, 4, Driver.rpm<int>(player + OFFSET_HEALTH), Driver.rpm<int>(player + OFFSET_SHIELD));
+						view.DrawHealthbars(middle, targetHeadScreen.y, width, height, 4, Driver.rpm<int>(player + OFFSET_HEALTH), Driver.rpm<int>(player + OFFSET_SHIELD));
 					}
 
 					if (distM <= globals.maxTextDistance)
@@ -450,16 +469,23 @@ void overlay::Render()
 
 		}
 
-		if (globals.drawAimbotFOV)
+		if (globals.drawAimbotFOV)//显示fov范围
 		{
 			// draw fov circle
 			DrawCircle(globals.windowWH.x / 2, globals.windowWH.y / 2, globals.aimbotFOV, 1.f, 50.f, globals.rainbowFOV ? ImGui::ColorConvertFloat4ToU32(globals.currentRainbowColor) : Util::Vec4toARGB(globals.fovCircleColor));
 		}
 
-		DrawString((std::string(xorstr_("Aimbot:\t")) + (globals.aimbot ? xorstr_("ON") : xorstr_("OFF"))).c_str(), 5, 5, globals.aimbot ? ARGB(255, 0, 255, 0) : ARGB(255, 255, 0, 0), pESPFont);
-		DrawString((std::string(xorstr_("RCS:\t")) + (globals.rcs ? xorstr_("ON") : xorstr_("OFF"))).c_str(), 5, 19, globals.rcs ? ARGB(255, 0, 255, 0) : ARGB(255, 255, 0, 0), pESPFont);
-		DrawString((std::string(xorstr_("ESP:\t")) + (globals.esp ? xorstr_("ON") : xorstr_("OFF"))).c_str(), 5, 33, globals.esp ? ARGB(255, 0, 255, 0) : ARGB(255, 255, 0, 0), pESPFont);
+		DrawString((std::string(xorstr_("自瞄:\t")) + (globals.aimbot ? xorstr_("ON") : xorstr_("OFF"))).c_str(), 5, 5, globals.aimbot ? ARGB(255, 0, 255, 0) : ARGB(255, 255, 0, 0), pESPFont);
+		DrawString((std::string(xorstr_("无后座力:\t")) + (globals.rcs ? xorstr_("ON") : xorstr_("OFF"))).c_str(), 5, 19, globals.rcs ? ARGB(255, 0, 255, 0) : ARGB(255, 255, 0, 0), pESPFont);
+		DrawString((std::string(xorstr_("透视:\t")) + (globals.esp ? xorstr_("ON") : xorstr_("OFF"))).c_str(), 5, 33, globals.esp ? ARGB(255, 0, 255, 0) : ARGB(255, 255, 0, 0), pESPFont);
+		DrawString((std::string(xorstr_("启用预判:\t")) + ((globals.forceAim == true) ? xorstr_("强行") : xorstr_("预判"))).c_str(), 5, 47, (globals.forceAim == true) ? ARGB(255, 0, 255, 0) : ARGB(255, 255, 0, 0), pESPFont);
+		DrawString((std::string(xorstr_("自瞄模式:\t")) + (globals.smoothMode ? xorstr_("平滑") : xorstr_("暴力"))).c_str(), 5, 61, globals.smoothMode ? ARGB(255, 0, 255, 0) : ARGB(255, 255, 0, 0), pESPFont);
+		DrawString((std::string(xorstr_("自瞄判断延迟:\t")) + (std::to_string(globals.delayTime))).c_str(), 5, 75, ARGB(255, 0, 255, 0), pESPFont);
+		DrawString((std::string(xorstr_("平滑压枪强度:\t")) + (std::to_string(globals.smoothAimIntensity))).c_str(), 5, 89, ARGB(255, 0, 255, 0), pESPFont);
+
+		
 		//DrawString((std::string(xorstr_("Target:\t")) + ((globals.currentAimTarget != NULL) ? xorstr_("YES") : xorstr_("NO"))).c_str(), 5, 47, ARGB(255, 0, 255, 0), pESPFont);
+		
 
 		drawList->PushClipRectFullScreen();
 		ImGui::End();

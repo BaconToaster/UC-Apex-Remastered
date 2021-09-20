@@ -26,4 +26,4 @@ protected:
 	singleton( ) = default;
 };
 
-template <class T> T* singleton<T>::ob_instance = nullptr;
+//template <class T> T* singleton<T>::ob_instance = nullptr;//debug

@@ -8,6 +8,8 @@
 
 namespace Util
 {
+	//int lastKey=0;
+
 	std::string RandomString(const int len);
 	bool RenameFile(std::string& path);
 	uintptr_t GetPid(const wchar_t* processName);
@@ -18,4 +20,7 @@ namespace Util
 	bool WorldToScreen(vec3 world, vec2& screen);
 	vec3 GetBonePos(uintptr_t ent, int id);
 	float ToMeters(float x);
+	void Delay(int time);
+
+	void BindKey(int vKey,bool globalKey);
 }
